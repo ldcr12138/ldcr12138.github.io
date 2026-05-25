@@ -5,173 +5,134 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="Academic Webpage" />
-    <meta name="author" content="senli1073" />
+    <meta name="author" content="Feng Gu" />
     <title id="title"></title>
 
-    <!-- Icon -->
     <link rel="icon" type="image/x-icon" href="static/assets/favicon.ico" />
-
-    <!-- Bootstrap icons-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
-
-    <!-- Google fonts-->
-    <link rel="preconnect" href="https://fonts.gstatic.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,600;1,600&amp;display=swap"
-        rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,300;0,500;0,600;0,700;1,300;1,500;1,600;1,700&amp;display=swap"
-        rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;1,400&amp;display=swap"
-        rel="stylesheet" />
-
-    <!-- Core theme CSS (includes Bootstrap)-->
     <link type="text/css" href="static/css/styles.css" rel="stylesheet" />
     <link type="text/css" href="static/css/main.css" rel="stylesheet" />
 
-    <!-- Bootstrap core JS-->
-    <script type="text/javascript" src="static/js/bootstrap.bundle.min.js"></script>
-
-    <!-- For Compatability -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    
-    <!-- Markdown -->
-    <script type="text/javascript" src="static/js/marked.min.js"></script>
-
-    <!-- Mathematics -->
+    <script type="text/javascript" src="static/js/bootstrap.bundle.min.js" defer></script>
+    <script type="text/javascript" src="static/js/marked.min.js" defer></script>
+    <script type="text/javascript" src="static/js/js-yaml.min.js" defer></script>
     <script>
-        // See https://docs.mathjax.org/en/latest/index.html for more details.
         MathJax = {
             tex: {
-                packages: {},              // extensions to use
-                inlineMath: [              // start/end delimiter pairs for in-line math
-                    ['$', '$'],
-                    ['\\(', '\\)']
-                ],
-                displayMath: [             // start/end delimiter pairs for display math
-                    ['$$', '$$'],
-                    ['\\[', '\\]']
-                ],
-                processEscapes: false,      // use \$ to produce a literal dollar sign
-                processEnvironments: true, // process \begin{xxx}...\end{xxx} outside math mode
-                processRefs: true,         // process \ref{...} outside of math mode
-                digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,    // pattern for recognizing numbers
-                tags: 'all',              // or 'ams' or 'all'
-                tagSide: 'right',          // side for \tag macros
-                tagIndent: '0.8em',        // amount to indent tags
-                useLabelIds: true,         // use label name rather than tag for ids
-                maxMacros: 10000,          // maximum number of macro substitutions per expression
-                maxBuffer: 5 * 1024,       // maximum size for the internal TeX string (5K)
-                // baseURL:                   // URL for use with links to tags (when there is a <base> tag in effect)
-                // (document.getElementsByTagName('base').length === 0) ? '' : String(document.location).replace(/#.*$/, ''),
-                formatError:               // function called when TeX syntax errors occur
-                    (jax, err) => jax.formatError(err)
+                packages: {},
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: false,
+                processEnvironments: true,
+                processRefs: true,
+                tags: 'all',
+                tagSide: 'right',
+                tagIndent: '0.8em',
+                useLabelIds: true,
+                maxMacros: 10000,
+                maxBuffer: 5 * 1024,
+                formatError: (jax, err) => jax.formatError(err)
             }
         };
     </script>
-    <script type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
-    <!-- Core JS-->
-    <script type="text/javascript" src="static/js/scripts.js"></script>
-    <script type="text/javascript" src="static/js/js-yaml.min.js"></script>
-
+    <script type="text/javascript" id="MathJax-script" src="static/js/tex-svg.js" defer></script>
+    <script type="text/javascript" src="static/js/scripts.js" defer></script>
 </head>
 
 <body id="page-top">
-    <!-- Navigation-->
-    <nav class="header navbar navbar-expand-lg navbar-light fixed-top shadow-sm" id="mainNav">
-        <div class="container px-5">
-            <a id="page-top-title" class="navbar-brand fw-bold" href="#page-top"></a>
-            <!-- <a href="#page-top"><img src="static/assets/img/CUMT_LOGO.svg" style="width: 11rem;"></a> -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
-                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                MENU
-                <i class="bi-list"></i>
+    <div class="site-progress" aria-hidden="true">
+        <span id="scroll-progress"></span>
+    </div>
+
+    <nav class="site-nav navbar navbar-expand-lg fixed-top" id="mainNav" aria-label="Primary navigation">
+        <div class="container px-4 px-lg-5">
+            <a id="page-top-title" class="site-brand navbar-brand" href="#page-top" data-config-key="page-top-title"></a>
+            <button class="navbar-toggler site-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarResponsive">
-                <ul class="navbar-nav ms-auto me-4 my-3 my-lg-0">
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link me-lg-3" href="#page-top">HOME</a>
+                        <a class="nav-link" href="#page-top">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link me-lg-3" href="#publications">PUBLICATIONS</a>
+                        <a class="nav-link" href="#publications">Publications</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link me-lg-3" href="#awards">AWARDS</a>
+                        <a class="nav-link" href="#awards">Awards</a>
                     </li>
-
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- Top Section -->
-    <section class="top-section" style="background-image: url('static/assets/img/background.jpeg');">
-        <div class="top-section-content">
-            <div class="container px-5">
-                <h2 id="top-section-bg-text" class="text-white display-3 lh-1 font-alt"></h2>
+    <header class="top-section" style="background-image: url('static/assets/img/background.jpg');">
+        <div class="container px-4 px-lg-5">
+            <div class="hero-content reveal">
+                <p class="hero-eyebrow" data-config-key="home-subtitle"></p>
+                <h1 id="top-section-bg-text" data-config-key="top-section-bg-text"></h1>
+                <div class="hero-rule" aria-hidden="true"></div>
             </div>
         </div>
-    </section>
-    <!-- Top Section -->
+    </header>
 
-    <!-- Photo -->
-    <div class="container px-5">
-        <div id="avatar">
-            <img class="shadow" src="static/assets/img/photo.png">
-        </div>
-    </div>
-    <!-- Photo -->
-    
-    <!-- Home -->
-    <section class="bg-gradient-primary-to-secondary-light mt5 md5" id="home">
-        <div class="container px-5">
-            <header>
-                <h2 id="home-subtitle"> </h2>
-                <!-- <span class="bi bi-list"></span> -->
-            </header>
-            <div class="main-body" id="home-md"></div>
-        </div>
-    </section>
-    <!-- Home -->
+    <main>
+        <section class="section-band section-home" id="home" data-section-name="home">
+            <div class="container px-4 px-lg-5">
+                <div class="profile-layout">
+                    <div class="profile-copy reveal">
+                        <header class="section-heading">
+                            <span class="section-index">01</span>
+                            <h2 id="home-subtitle" data-config-key="home-subtitle"></h2>
+                        </header>
+                        <div class="main-body markdown-body" id="home-md"></div>
+                    </div>
 
-    <!-- Publications -->
-    <section class="bg-gradient-primary-to-secondary-gray mt5 md5" id="publications">
-        <div class="container px-5">
-            <header>
-                <h2 id="publications-subtitle"><i class="bi bi-file-text-fill"></i>&nbsp;PUBLICATIONS</h2>
-            </header>
-            <div class="main-body" id="publications-md"></div>
+                    <figure id="avatar" class="profile-portrait reveal">
+                        <img src="static/assets/img/photo.png" alt="Profile photo" />
+                    </figure>
+                </div>
+            </div>
+        </section>
 
-        </div>
-    </section>
-    <!-- Publications  -->
+        <section class="section-band section-band-muted" id="publications" data-section-name="publications">
+            <div class="container px-4 px-lg-5">
+                <header class="section-heading reveal">
+                    <span class="section-index">02</span>
+                    <h2 id="publications-subtitle">Publications</h2>
+                </header>
+                <div class="main-body markdown-body" id="publications-md"></div>
+            </div>
+        </section>
 
-    <!-- Awards -->
-    <section class="bg-gradient-primary-to-secondary-light mt5 md5" id="awards">
-        <div class="container px-5">
-            <header>
-                <h2 id="awards-subtitle"><i class="bi bi-award-fill"></i>AWARDS </h2>
-            </header>
-            <div class="main-body" id="awards-md"></div>
+        <section class="section-band" id="awards" data-section-name="awards">
+            <div class="container px-4 px-lg-5">
+                <header class="section-heading reveal">
+                    <span class="section-index">03</span>
+                    <h2 id="awards-subtitle">Awards</h2>
+                </header>
+                <div class="main-body markdown-body" id="awards-md"></div>
+            </div>
+        </section>
+    </main>
 
-        </div>
-    </section>
-    <!-- Awards -->
-
-
-    <!-- Footer-->
     <footer class="bg-bottom text-center py-5">
-        <div class="container px-5">
-            <div class="text-white-50 small">
-                <div id="copyright-text" class="mb-2"></div>
-                <a id="github-link" href="https://github.com/senli1073">Github</a>
-                <span class="mx-1">&middot;</span>
-                <a id="license-link" href="https://github.com/senli1073/senli1073.github.io/blob/main/LICENSE">License</a>
+        <div class="container px-4 px-lg-5">
+            <div class="footer-inner">
+                <div id="copyright-text" class="copyright" data-config-key="copyright-text"></div>
+                <div class="footer-links">
+                    <a id="github-link" href="https://github.com/ldcr12138">Github</a>
+                    <span aria-hidden="true">/</span>
+                    <a id="license-link" href="https://github.com/ldcr12138/ldcr12138.github.io/blob/main/LICENSE">License</a>
+                </div>
             </div>
         </div>
     </footer>
 
+    <button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top">↑</button>
 </body>
 
 </html>
