@@ -4,7 +4,8 @@ const section_names = ['home', 'publications', 'awards'];
 
 const state = {
     revealObserver: null,
-    visibleSections: []
+    visibleSections: [],
+    needsMath: false
 };
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -26,10 +27,41 @@ function loadConfig() {
             return response.text();
         })
         .then(text => {
-            const yml = jsyaml.load(text) || {};
+            if (containsMath(text)) {
+                state.needsMath = true;
+            }
+
+            const yml = parseSimpleYaml(text);
             Object.entries(yml).forEach(([key, value]) => applyConfigValue(key, value));
         })
         .catch(error => console.log(error));
+}
+
+function parseSimpleYaml(text) {
+    return text.split(/\r?\n/).reduce((config, line) => {
+        if (!line.trim() || line.trimStart().startsWith('#')) {
+            return config;
+        }
+
+        const delimiter = line.indexOf(':');
+
+        if (delimiter === -1) {
+            return config;
+        }
+
+        const key = line.slice(0, delimiter).trim();
+        let value = line.slice(delimiter + 1).trim();
+
+        if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
+            value = value.slice(1, -1);
+        }
+
+        if (key) {
+            config[key] = value;
+        }
+
+        return config;
+    }, {});
 }
 
 function applyConfigValue(key, value) {
@@ -63,7 +95,13 @@ function loadSections() {
                 }
                 return response.text();
             })
-            .then(markdown => renderMarkdownSection(name, markdown))
+            .then(markdown => {
+                if (containsMath(markdown)) {
+                    state.needsMath = true;
+                }
+
+                renderMarkdownSection(name, markdown);
+            })
             .catch(error => console.log(error));
     });
 
@@ -71,7 +109,10 @@ function loadSections() {
         refreshVisibleSections();
         updateActiveNavigation();
         observeRevealElements();
-        typesetMath();
+
+        if (state.needsMath) {
+            typesetMath();
+        }
     });
 }
 
@@ -167,6 +208,7 @@ function enhanceLinks(container) {
 function hideNavLink(sectionName) {
     document.querySelectorAll(`a[href="#${sectionName}"]`).forEach(link => {
         const item = link.closest('.nav-item');
+
         if (item) {
             item.hidden = true;
         }
@@ -174,13 +216,22 @@ function hideNavLink(sectionName) {
 }
 
 function setupNavigation() {
-    const navbarToggler = document.body.querySelector('.navbar-toggler');
+    const nav = document.getElementById('mainNav');
+    const navbarToggler = document.body.querySelector('.site-toggler');
     const responsiveNavItems = Array.from(document.querySelectorAll('#navbarResponsive .nav-link'));
+
+    if (nav && navbarToggler) {
+        navbarToggler.addEventListener('click', () => {
+            const isOpen = nav.classList.toggle('menu-open');
+            navbarToggler.setAttribute('aria-expanded', String(isOpen));
+        });
+    }
 
     responsiveNavItems.forEach(navItem => {
         navItem.addEventListener('click', () => {
-            if (navbarToggler && window.getComputedStyle(navbarToggler).display !== 'none') {
-                navbarToggler.click();
+            if (nav && navbarToggler) {
+                nav.classList.remove('menu-open');
+                navbarToggler.setAttribute('aria-expanded', 'false');
             }
         });
     });
@@ -312,10 +363,43 @@ function observeRevealElements(root = document) {
     items.forEach(item => state.revealObserver.observe(item));
 }
 
+function containsMath(text) {
+    return /(^|[^\\])\$\$(.|\n)*?\$\$/.test(text)
+        || /(^|[^\\])\$(?!\s)[^$\n]+\$/.test(text)
+        || /\\\(|\\\[|\\begin\{/.test(text);
+}
+
 function typesetMath() {
-    if (!window.MathJax || !MathJax.typesetPromise) {
+    if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise().catch(error => console.log(error));
         return;
     }
 
-    MathJax.typesetPromise().catch(error => console.log(error));
+    window.MathJax = {
+        tex: {
+            packages: {},
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: false,
+            processEnvironments: true,
+            processRefs: true,
+            tags: 'all',
+            tagSide: 'right',
+            tagIndent: '0.8em',
+            useLabelIds: true,
+            maxMacros: 10000,
+            maxBuffer: 5 * 1024
+        }
+    };
+
+    const script = document.createElement('script');
+    script.src = 'static/js/tex-svg.js';
+    script.async = true;
+    script.onload = () => {
+        if (window.MathJax && MathJax.typesetPromise) {
+            MathJax.typesetPromise().catch(error => console.log(error));
+        }
+    };
+    script.onerror = error => console.log(error);
+    document.head.appendChild(script);
 }
