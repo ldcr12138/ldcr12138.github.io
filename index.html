@@ -10,6 +10,17 @@
 
     <link rel="icon" type="image/x-icon" href="static/assets/favicon.ico" />
     <link rel="preload" href="static/assets/img/background.jpg" as="image" />
+    <script>
+        (() => {
+            try {
+                const storedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.dataset.theme = storedTheme || (prefersDark ? 'dark' : 'light');
+            } catch {
+                document.documentElement.dataset.theme = 'light';
+            }
+        })();
+    </script>
     <link type="text/css" href="static/css/main.css" rel="stylesheet" />
 
     <script type="text/javascript" src="static/js/marked.min.js" defer></script>
@@ -24,12 +35,16 @@
     <nav class="site-nav" id="mainNav" aria-label="Primary navigation">
         <div class="container nav-inner">
             <a id="page-top-title" class="site-brand" href="#page-top" data-config-key="page-top-title">Feng Gu</a>
-            <button class="site-toggler" type="button" aria-controls="navbarResponsive" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode"
+                    aria-pressed="false"></button>
+                <button class="site-toggler" type="button" aria-controls="navbarResponsive" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
             <div class="site-menu" id="navbarResponsive">
                 <ul class="navbar-nav">
                     <li class="nav-item">
@@ -61,19 +76,22 @@
             <div class="container">
                 <div class="profile-layout">
                     <div class="profile-copy reveal">
-                        <header class="section-heading">
-                            <span class="section-index">01</span>
-                            <h2 id="home-subtitle" data-config-key="home-subtitle">Feng Gu&ensp;|&ensp;&#35895;&#23792;</h2>
-                        </header>
+                        <div class="profile-head">
+                            <header class="section-heading">
+                                <span class="section-index">01</span>
+                                <h2 id="home-subtitle" data-config-key="home-subtitle">Feng Gu&ensp;|&ensp;&#35895;&#23792;</h2>
+                            </header>
+
+                            <figure id="avatar" class="profile-portrait">
+                                <img src="static/assets/img/avatar-360.jpg"
+                                    srcset="static/assets/img/avatar-240.jpg 240w, static/assets/img/avatar-360.jpg 360w, static/assets/img/avatar-520.jpg 520w"
+                                    sizes="(max-width: 480px) 104px, (max-width: 767px) 116px, (max-width: 991px) 180px, 300px"
+                                    width="360" height="360" alt="Profile photo" loading="lazy" decoding="async" />
+                            </figure>
+                        </div>
+
                         <div class="main-body markdown-body" id="home-md"></div>
                     </div>
-
-                    <figure id="avatar" class="profile-portrait reveal">
-                        <img src="static/assets/img/avatar-360.jpg"
-                            srcset="static/assets/img/avatar-240.jpg 240w, static/assets/img/avatar-360.jpg 360w, static/assets/img/avatar-520.jpg 520w"
-                            sizes="(max-width: 480px) 220px, (max-width: 991px) 240px, 260px"
-                            width="360" height="360" alt="Profile photo" loading="lazy" decoding="async" />
-                    </figure>
                 </div>
             </div>
         </section>

@@ -9,6 +9,7 @@ const state = {
 };
 
 window.addEventListener('DOMContentLoaded', () => {
+    setupThemeToggle();
     setupNavigation();
     setupScrollFeedback();
     setupRevealObserver();
@@ -18,6 +19,36 @@ window.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     loadSections();
 });
+
+function setupThemeToggle() {
+    const toggle = document.getElementById('theme-toggle');
+
+    if (!toggle) {
+        return;
+    }
+
+    const getTheme = () => document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+    const syncToggle = () => {
+        const isDark = getTheme() === 'dark';
+        toggle.setAttribute('aria-pressed', String(isDark));
+        toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    };
+
+    toggle.addEventListener('click', () => {
+        const nextTheme = getTheme() === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = nextTheme;
+
+        try {
+            localStorage.setItem('theme', nextTheme);
+        } catch {
+            console.log('Theme preference could not be saved.');
+        }
+
+        syncToggle();
+    });
+
+    syncToggle();
+}
 
 function loadConfig() {
     fetch(content_dir + config_file)
