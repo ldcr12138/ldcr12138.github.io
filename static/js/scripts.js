@@ -12,6 +12,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
     setupScrollFeedback();
     setupRevealObserver();
+    document.documentElement.classList.add('js-ready');
     observeRevealElements();
 
     loadConfig();
