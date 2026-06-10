@@ -321,12 +321,14 @@ function setupPointerEffects() {
     const supportsFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (!field || !supportsFinePointer || reduceMotion) {
+    if (!field || !supportsFinePointer || reduceMotion || window.innerWidth < 768) {
         return;
     }
 
     const root = document.documentElement;
-    const maxParticles = 24;
+    const maxParticles = 18;
+    const particleTypes = ['is-tableau', 'is-pipe', 'is-elbow', 'is-schur', 'is-tableau'];
+    const schurLabels = ['s_\u03BB', 's_\u03BC', 's_(2,1)', 'S_\u03BB'];
     let activeParticles = 0;
     let lastParticleTime = 0;
     let frame = 0;
@@ -342,7 +344,7 @@ function setupPointerEffects() {
     const spawnParticle = (x, y) => {
         const now = performance.now();
 
-        if (now - lastParticleTime < 70 || activeParticles >= maxParticles) {
+        if (now - lastParticleTime < 92 || activeParticles >= maxParticles) {
             return;
         }
 
@@ -350,22 +352,28 @@ function setupPointerEffects() {
         activeParticles += 1;
 
         const particle = document.createElement('span');
+        const particleType = particleTypes[Math.floor(Math.random() * particleTypes.length)];
         const angle = Math.random() * Math.PI * 2;
-        const distance = 18 + Math.random() * 34;
+        const distance = 24 + Math.random() * 42;
 
-        particle.className = 'cursor-particle';
+        particle.className = `cursor-particle ${particleType}`;
         particle.style.setProperty('--particle-x', `${x}px`);
         particle.style.setProperty('--particle-y', `${y}px`);
-        particle.style.setProperty('--particle-size', `${4 + Math.random() * 7}px`);
         particle.style.setProperty('--particle-dx', `${Math.cos(angle) * distance}px`);
         particle.style.setProperty('--particle-dy', `${Math.sin(angle) * distance}px`);
+        particle.style.setProperty('--particle-rotate', `${Math.random() * 46 - 23}deg`);
+        particle.style.setProperty('--particle-spin', `${Math.random() * 42 - 21}deg`);
+
+        if (particleType === 'is-schur') {
+            particle.textContent = schurLabels[Math.floor(Math.random() * schurLabels.length)];
+        }
 
         field.appendChild(particle);
 
         window.setTimeout(() => {
             particle.remove();
             activeParticles = Math.max(0, activeParticles - 1);
-        }, 820);
+        }, 1020);
     };
 
     window.addEventListener('pointermove', event => {
