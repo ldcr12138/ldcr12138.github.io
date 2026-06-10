@@ -12,6 +12,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setupThemeToggle();
     setupNavigation();
     setupScrollFeedback();
+    setupPointerEffects();
     setupRevealObserver();
     document.documentElement.classList.add('js-ready');
     observeRevealElements();
@@ -312,6 +313,79 @@ function setupScrollFeedback() {
     window.addEventListener('resize', () => {
         refreshVisibleSections();
         requestUpdate();
+    });
+}
+
+function setupPointerEffects() {
+    const field = document.getElementById('cursor-field');
+    const supportsFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!field || !supportsFinePointer || reduceMotion) {
+        return;
+    }
+
+    const root = document.documentElement;
+    const maxParticles = 24;
+    let activeParticles = 0;
+    let lastParticleTime = 0;
+    let frame = 0;
+    let pointerX = window.innerWidth / 2;
+    let pointerY = window.innerHeight / 2;
+
+    const updatePointerPosition = () => {
+        root.style.setProperty('--cursor-x', `${pointerX}px`);
+        root.style.setProperty('--cursor-y', `${pointerY}px`);
+        frame = 0;
+    };
+
+    const spawnParticle = (x, y) => {
+        const now = performance.now();
+
+        if (now - lastParticleTime < 70 || activeParticles >= maxParticles) {
+            return;
+        }
+
+        lastParticleTime = now;
+        activeParticles += 1;
+
+        const particle = document.createElement('span');
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 18 + Math.random() * 34;
+
+        particle.className = 'cursor-particle';
+        particle.style.setProperty('--particle-x', `${x}px`);
+        particle.style.setProperty('--particle-y', `${y}px`);
+        particle.style.setProperty('--particle-size', `${4 + Math.random() * 7}px`);
+        particle.style.setProperty('--particle-dx', `${Math.cos(angle) * distance}px`);
+        particle.style.setProperty('--particle-dy', `${Math.sin(angle) * distance}px`);
+
+        field.appendChild(particle);
+
+        window.setTimeout(() => {
+            particle.remove();
+            activeParticles = Math.max(0, activeParticles - 1);
+        }, 820);
+    };
+
+    window.addEventListener('pointermove', event => {
+        if (event.pointerType && event.pointerType !== 'mouse') {
+            return;
+        }
+
+        pointerX = event.clientX;
+        pointerY = event.clientY;
+        root.classList.add('pointer-ready');
+
+        if (!frame) {
+            frame = window.requestAnimationFrame(updatePointerPosition);
+        }
+
+        spawnParticle(pointerX, pointerY);
+    }, { passive: true });
+
+    document.addEventListener('mouseleave', () => {
+        root.classList.remove('pointer-ready');
     });
 }
 

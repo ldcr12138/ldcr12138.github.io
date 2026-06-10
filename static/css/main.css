@@ -1,5 +1,7 @@
 :root {
     color-scheme: light;
+    --cursor-x: 50vw;
+    --cursor-y: 50vh;
     --page: #f7f8f6;
     --surface: #ffffff;
     --surface-muted: #eef3f1;
@@ -78,6 +80,75 @@ ol {
 
 button {
     font: inherit;
+}
+
+.cursor-field {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    contain: layout paint style;
+    transition: opacity 260ms ease, visibility 260ms ease;
+}
+
+.cursor-field::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at var(--cursor-x) var(--cursor-y),
+            rgba(31, 111, 104, 0.16),
+            rgba(31, 111, 104, 0.08) 7rem,
+            transparent 18rem);
+    mix-blend-mode: multiply;
+}
+
+[data-theme="dark"] .cursor-field::before {
+    background:
+        radial-gradient(circle at var(--cursor-x) var(--cursor-y),
+            rgba(127, 200, 189, 0.2),
+            rgba(213, 141, 128, 0.09) 7rem,
+            transparent 18rem);
+    mix-blend-mode: screen;
+}
+
+.cursor-particle {
+    position: absolute;
+    left: var(--particle-x);
+    top: var(--particle-y);
+    width: var(--particle-size);
+    height: var(--particle-size);
+    border: 1px solid var(--accent-cool);
+    border-radius: 50%;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+    will-change: opacity, transform;
+    animation: particle-drift 760ms ease-out forwards;
+}
+
+.cursor-particle:nth-child(2n) {
+    border-color: var(--accent);
+}
+
+.cursor-particle:nth-child(3n) {
+    border-color: var(--accent-gold);
+}
+
+@keyframes particle-drift {
+    0% {
+        opacity: 0.74;
+        transform: translate(-50%, -50%) scale(0.25);
+    }
+
+    100% {
+        opacity: 0;
+        transform:
+            translate(calc(-50% + var(--particle-dx)), calc(-50% + var(--particle-dy)))
+            scale(1.4);
+    }
 }
 
 ::selection {
@@ -186,6 +257,16 @@ img {
 .site-brand:hover,
 .site-brand:focus {
     color: var(--accent-deep);
+}
+
+.site-brand,
+.nav-link,
+.theme-toggle,
+.site-toggler,
+.back-to-top,
+.profile-portrait img,
+.markdown-body a {
+    position: relative;
 }
 
 .site-menu {
@@ -731,6 +812,36 @@ section header h2,
     transform: translateX(0.18rem);
 }
 
+@media (hover: hover) and (pointer: fine) {
+    .pointer-ready .cursor-field {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .section-band,
+    .top-section,
+    .site-nav,
+    .bg-bottom {
+        transition: box-shadow 240ms ease, background-color 220ms ease;
+    }
+
+    .section-band:hover {
+        box-shadow: inset 0 1px 0 rgba(155, 77, 68, 0.08);
+    }
+
+    .markdown-body a:hover,
+    .site-brand:hover,
+    .nav-link:hover {
+        text-shadow: 0 0 18px rgba(31, 111, 104, 0.15);
+    }
+
+    [data-theme="dark"] .markdown-body a:hover,
+    [data-theme="dark"] .site-brand:hover,
+    [data-theme="dark"] .nav-link:hover {
+        text-shadow: 0 0 18px rgba(127, 200, 189, 0.22);
+    }
+}
+
 .content-empty,
 section[hidden],
 .nav-item[hidden] {
@@ -1057,5 +1168,9 @@ section[hidden],
         opacity: 1;
         transform: none;
         filter: none;
+    }
+
+    .cursor-field {
+        display: none;
     }
 }
