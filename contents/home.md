@@ -6,8 +6,8 @@ I am currently a first-year master's student at the Center for Combinatorics, Na
 Email: fgu@mail.nankai.edu.cn
 
 #### Education
-M.E., Mathematics and Applied Mathematics, Nankai University, 2021–2025.\
-B.E., Applied Mathematics, Center for Combinatorics, Nankai University, 2025–present.
+B.S., Mathematics and Applied Mathematics, Nankai University, 2021–2025.\
+M.S., Applied Mathematics, Center for Combinatorics, Nankai University, 2025–present.
 
 #### Research Interests
 Algebraic Combinatorics; Schubert/Grothendieck Polynomials.
