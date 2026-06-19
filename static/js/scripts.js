@@ -167,9 +167,41 @@ function renderMarkdownSection(name, markdown) {
         marked.use({ mangle: false, headerIds: false });
     }
 
-    container.innerHTML = marked.parse(markdown);
+    const mathProtected = protectMathSegments(markdown);
+    const renderedHtml = marked.parse(mathProtected.markdown);
+
+    container.innerHTML = restoreMathSegments(renderedHtml, mathProtected.segments);
     enhanceMarkdown(container);
     enhanceLinks(container);
+}
+
+function protectMathSegments(markdown) {
+    const segments = [];
+    const mathPattern = /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\\begin\{([a-zA-Z*]+)\}[\s\S]+?\\end\{\2\})/g;
+
+    return {
+        markdown: markdown.replace(mathPattern, match => {
+            const token = `@@MATH_SEGMENT_${segments.length}@@`;
+            segments.push(match);
+            return token;
+        }),
+        segments
+    };
+}
+
+function restoreMathSegments(html, segments) {
+    return html.replace(/@@MATH_SEGMENT_(\d+)@@/g, (_, index) => {
+        return escapeHtml(segments[Number(index)] || '');
+    });
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 function enhanceMarkdown(container) {
@@ -319,19 +351,39 @@ function setupScrollFeedback() {
 function setupPointerEffects() {
     const field = document.getElementById('cursor-field');
     const supportsFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const supportsTouchPointer = window.matchMedia('(pointer: coarse)').matches
+        || 'ontouchstart' in window
+        || navigator.maxTouchPoints > 0;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (!field || !supportsFinePointer || reduceMotion || window.innerWidth < 768) {
+    if (!field || reduceMotion || (!supportsFinePointer && !supportsTouchPointer)) {
         return;
     }
 
     const root = document.documentElement;
-    const maxParticles = 18;
-    const particleTypes = ['is-tableau', 'is-pipe', 'is-elbow', 'is-schur', 'is-tableau'];
-    const schurLabels = ['s_\u03BB', 's_\u03BC', 's_(2,1)', 'S_\u03BB'];
+    const maxParticles = supportsFinePointer ? 10 : 7;
+    const moveSpawnDelay = supportsFinePointer ? 260 : 420;
+    const burstSpawnDelay = supportsFinePointer ? 520 : 680;
+    const particleTypes = ['tableau', 'tableau', 'tableau', 'schur'];
+    const schurLabels = [
+        { base: 'S', sub: '\u03BB' },
+        { base: 's', sub: '\u03BC' },
+        { base: 's', sub: '(2,1)' },
+        { base: 'S', sub: '\u03BD' }
+    ];
+    const tableauShapes = [
+        [4, 3, 1],
+        [4, 2],
+        [3, 3, 1],
+        [3, 2, 1],
+        [3, 2],
+        [4, 3, 2]
+    ];
     let activeParticles = 0;
     let lastParticleTime = 0;
+    let lastBurstTime = 0;
     let frame = 0;
+    let hideTimer = 0;
     let pointerX = window.innerWidth / 2;
     let pointerY = window.innerHeight / 2;
 
@@ -341,10 +393,81 @@ function setupPointerEffects() {
         frame = 0;
     };
 
-    const spawnParticle = (x, y) => {
-        const now = performance.now();
+    const showField = (x, y, temporary = false) => {
+        pointerX = x;
+        pointerY = y;
+        root.classList.add('pointer-ready');
 
-        if (now - lastParticleTime < 92 || activeParticles >= maxParticles) {
+        if (!frame) {
+            frame = window.requestAnimationFrame(updatePointerPosition);
+        }
+
+        if (temporary) {
+            window.clearTimeout(hideTimer);
+            hideTimer = window.setTimeout(() => {
+                root.classList.remove('pointer-ready');
+            }, 980);
+        }
+    };
+
+    const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    const buildTableauParticle = () => {
+        const shape = tableauShapes[Math.floor(Math.random() * tableauShapes.length)];
+        const values = [];
+        const tableau = document.createElement('span');
+
+        tableau.className = 'tableau-grid';
+        tableau.style.setProperty('--tableau-cols', shape[0]);
+
+        shape.forEach((rowLength, rowIndex) => {
+            const row = document.createElement('span');
+            const rowValues = [];
+
+            row.className = 'tableau-row';
+
+            for (let columnIndex = 0; columnIndex < rowLength; columnIndex += 1) {
+                const left = columnIndex > 0 ? rowValues[columnIndex - 1] : 1 + rowIndex;
+                const above = rowIndex > 0 && values[rowIndex - 1][columnIndex] != null
+                    ? values[rowIndex - 1][columnIndex] + 1
+                    : 1;
+                const value = Math.min(9, Math.max(left, above) + randomInt(0, 1));
+                const cell = document.createElement('span');
+
+                cell.className = 'tableau-cell';
+                cell.textContent = value;
+                rowValues.push(value);
+                row.appendChild(cell);
+            }
+
+            values.push(rowValues);
+            tableau.appendChild(row);
+        });
+
+        return tableau;
+    };
+
+    const buildSchurParticle = () => {
+        const label = schurLabels[Math.floor(Math.random() * schurLabels.length)];
+        const base = document.createElement('span');
+        const sub = document.createElement('span');
+        const wrapper = document.createElement('span');
+
+        wrapper.className = 'schur-label';
+        base.className = 'schur-base';
+        sub.className = 'schur-sub';
+        base.textContent = label.base;
+        sub.textContent = label.sub;
+        wrapper.append(base, sub);
+
+        return wrapper;
+    };
+
+    const spawnParticle = (x, y, options = {}) => {
+        const now = performance.now();
+        const particleLimit = options.force ? maxParticles + 2 : maxParticles;
+
+        if (activeParticles >= particleLimit || (!options.force && now - lastParticleTime < moveSpawnDelay)) {
             return;
         }
 
@@ -352,11 +475,11 @@ function setupPointerEffects() {
         activeParticles += 1;
 
         const particle = document.createElement('span');
-        const particleType = particleTypes[Math.floor(Math.random() * particleTypes.length)];
+        const particleType = options.type || particleTypes[Math.floor(Math.random() * particleTypes.length)];
         const angle = Math.random() * Math.PI * 2;
-        const distance = 24 + Math.random() * 42;
+        const distance = 24 + Math.random() * 46;
 
-        particle.className = `cursor-particle ${particleType}`;
+        particle.className = `cursor-particle is-${particleType}`;
         particle.style.setProperty('--particle-x', `${x}px`);
         particle.style.setProperty('--particle-y', `${y}px`);
         particle.style.setProperty('--particle-dx', `${Math.cos(angle) * distance}px`);
@@ -364,8 +487,12 @@ function setupPointerEffects() {
         particle.style.setProperty('--particle-rotate', `${Math.random() * 46 - 23}deg`);
         particle.style.setProperty('--particle-spin', `${Math.random() * 42 - 21}deg`);
 
-        if (particleType === 'is-schur') {
-            particle.textContent = schurLabels[Math.floor(Math.random() * schurLabels.length)];
+        if (particleType === 'tableau') {
+            particle.appendChild(buildTableauParticle());
+        }
+
+        if (particleType === 'schur') {
+            particle.appendChild(buildSchurParticle());
         }
 
         field.appendChild(particle);
@@ -376,21 +503,51 @@ function setupPointerEffects() {
         }, 1020);
     };
 
-    window.addEventListener('pointermove', event => {
-        if (event.pointerType && event.pointerType !== 'mouse') {
+    const spawnBurst = (x, y) => {
+        const now = performance.now();
+        const amount = 2;
+
+        if (now - lastBurstTime < burstSpawnDelay) {
             return;
         }
 
-        pointerX = event.clientX;
-        pointerY = event.clientY;
-        root.classList.add('pointer-ready');
+        lastBurstTime = now;
 
-        if (!frame) {
-            frame = window.requestAnimationFrame(updatePointerPosition);
+        for (let index = 0; index < amount; index += 1) {
+            const jitterX = x + randomInt(-14, 14);
+            const jitterY = y + randomInt(-14, 14);
+            const type = index === amount - 1 ? 'schur' : 'tableau';
+
+            spawnParticle(jitterX, jitterY, { force: true, type });
+        }
+    };
+
+    window.addEventListener('pointermove', event => {
+        if (!supportsFinePointer || (event.pointerType && event.pointerType !== 'mouse')) {
+            return;
         }
 
+        showField(event.clientX, event.clientY);
         spawnParticle(pointerX, pointerY);
     }, { passive: true });
+
+    window.addEventListener('pointerdown', event => {
+        showField(event.clientX, event.clientY, event.pointerType !== 'mouse');
+        spawnBurst(event.clientX, event.clientY);
+    }, { passive: true });
+
+    if (!window.PointerEvent) {
+        window.addEventListener('touchstart', event => {
+            const touch = event.touches[0];
+
+            if (!touch) {
+                return;
+            }
+
+            showField(touch.clientX, touch.clientY, true);
+            spawnBurst(touch.clientX, touch.clientY);
+        }, { passive: true });
+    }
 
     document.addEventListener('mouseleave', () => {
         root.classList.remove('pointer-ready');
@@ -491,13 +648,12 @@ function typesetMath() {
 
     window.MathJax = {
         tex: {
-            packages: {},
             inlineMath: [['$', '$'], ['\\(', '\\)']],
             displayMath: [['$$', '$$'], ['\\[', '\\]']],
-            processEscapes: false,
+            processEscapes: true,
             processEnvironments: true,
             processRefs: true,
-            tags: 'all',
+            tags: 'ams',
             tagSide: 'right',
             tagIndent: '0.8em',
             useLabelIds: true,
